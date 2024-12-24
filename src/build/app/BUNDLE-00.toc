@@ -1,0 +1,3 @@
+([('RobotTender',
+   '/Users/ugonggg/Downloads/robot/PadiCrawler/src/dist/RobotTender',
+   'EXECUTABLE')],)

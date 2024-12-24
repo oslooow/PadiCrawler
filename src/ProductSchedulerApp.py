@@ -180,6 +180,16 @@ class ProductSchedulerApp:
         self.stop_event = Event()
         self.processing_thread = None
         self.changed_products = []
+
+        # Result Label
+        self.result_label = tk.Label(
+            self.main_container,
+            text="",
+            font=("Segoe UI", 10),
+            bg=self.bg_color,
+            fg=self.text_color
+        )
+        self.result_label.pack(pady=5)
         
         # Center the window
         self.center_window()
@@ -222,14 +232,31 @@ class ProductSchedulerApp:
 
     def upload_file(self):
         """Prompt user to upload an Excel file and store the path."""
-        self.uploaded_file_path = filedialog.askopenfilename(
-            filetypes=[("Excel files", "*.xlsx;*.xls")],
-            title="Select an Excel file"
-        )
-        if not self.uploaded_file_path:
-            self.result_label.config(text="No file selected!", fg="red")
+        try:
+            # Create a new Tk window for the file dialog
+            file_dialog = tk.Toplevel(self.root)
+            file_dialog.withdraw()  # Hide the extra window
+            
+            self.uploaded_file_path = filedialog.askopenfilename(
+                parent=file_dialog,  # Set parent window
+                title="Select an Excel file",
+                filetypes=[("Excel files", "*.xlsx *.xls")],
+                initialdir="~/Documents"  # Start in Documents folder
+            )
+            
+            if not self.uploaded_file_path:
+                self.result_label.config(text="No file selected!", fg="red")
+                return False
+                
+            self.result_label.config(text=f"Selected: {self.uploaded_file_path}", fg="green")
+            return True
+            
+        except Exception as e:
+            self.result_label.config(text=f"Error selecting file: {str(e)}", fg="red")
             return False
-        return True
+        finally:
+            if 'file_dialog' in locals():
+                file_dialog.destroy()
 
     def process_data(self):
         """Run the data processing function, interruptible by stop event."""
@@ -362,15 +389,15 @@ class ProductSchedulerApp:
             return
 
         self.stop_event.clear()  # Reset stop event before starting the process
-        self.start_button.grid_remove()  # Hide the Start button
-        self.stop_button.grid()  # Show the Stop button
+        self.start_button.pack_forget()  # Hide the Start button
+        self.stop_button.pack(pady=10)  # Show the Stop button
         self.vendor_entry.config(state='disabled')  # Disable vendor input
         self.time_interval_entry.config(state='disabled')  # Disable time interval input
         self.result_label.config(text="")  # Clear any previous results
 
         # Ensure progress bar and text are visible
-        self.progress_bar.grid()  
-        self.progress_text.grid()
+        self.progress_bar.pack(pady=5)  
+        self.progress_text.pack(pady=5)
         
         self.log_message("Starting process...")
         self.processing_thread = Thread(target=self.process_data)
